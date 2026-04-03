@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import api from '../../../utils/api';
-import { fmtDate, stageColor, platformColor } from '../../../utils/helpers';
+import {  stageColor } from '../../../utils/helpers';
 import { useAuth } from '../../../context/AuthContext';
 
 const COLORS = ['#6366f1','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#14b8a6','#ec4899'];

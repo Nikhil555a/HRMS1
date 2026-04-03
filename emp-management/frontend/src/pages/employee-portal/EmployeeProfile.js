@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+// import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
 
 export default function EmployeeProfile() {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [emp, setEmp] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');

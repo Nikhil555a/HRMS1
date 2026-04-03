@@ -53,14 +53,25 @@ const Loader = () => (
 function SocketManager() {
   const { user } = useAuth();
 
+  // useEffect(() => {
+  //   if (user) {
+  //     const token = localStorage.getItem('token');
+  //     if (token) connectSocket(token);
+  //   } else {
+  //     disconnectSocket();
+  //   }
+  // }, [user?._id]);
+
   useEffect(() => {
-    if (user) {
-      const token = localStorage.getItem('token');
-      if (token) connectSocket(token);
-    } else {
-      disconnectSocket();
-    }
-  }, [user?._id]);
+  if (user) {
+    const token = localStorage.getItem('token');
+    if (token) connectSocket(token);
+  }
+
+  return () => {
+    disconnectSocket(); // 👈 cleanup
+  };
+}, [user]);
 
   return null;
 }

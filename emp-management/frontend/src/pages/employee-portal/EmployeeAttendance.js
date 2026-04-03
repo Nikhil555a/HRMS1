@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useCallback, useMemo} from 'react';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -8,7 +8,8 @@ const DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','
 
 export default function EmployeeAttendance() {
   const { user } = useAuth();
-  const now = new Date();
+  // const now = new Date();
+  const now = useMemo(() => new Date(), []);
 
   // Live clock
   const [liveTime, setLiveTime] = useState(new Date());
@@ -37,34 +38,66 @@ export default function EmployeeAttendance() {
   const [records, setRecords] = useState([]);
   const [loadingRecords, setLoadingRecords] = useState(true);
 
-  useEffect(() => {
-    fetchTodayRecords();
-    const h = String(now.getHours()).padStart(2, '0');
-    const m = String(now.getMinutes()).padStart(2, '0');
-    setCiTime(`${h}:${m}`);
-    setCoTime(`${h}:${m}`);
-  }, []);
+  // useEffect(() => {
+  //   fetchTodayRecords();
+  //   const h = String(now.getHours()).padStart(2, '0');
+  //   const m = String(now.getMinutes()).padStart(2, '0');
+  //   setCiTime(`${h}:${m}`);
+  //   setCoTime(`${h}:${m}`);
+  // }, [fetchTodayRecords, now]);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
   };
 
-  const fetchTodayRecords = async () => {
-    setLoadingRecords(true);
-    try {
-      const month = now.getMonth() + 1;
-      const year = now.getFullYear();
-      const res = await api.get('/attendance/my', { params: { month, year } });
-      const data = res.data || [];
-      const todayStr = now.toISOString().split('T')[0];
-      setRecords(data.filter(r => r.date?.startsWith(todayStr)));
-    } catch {
-      setRecords([]);
-    } finally {
-      setLoadingRecords(false);
-    }
-  };
+  // const fetchTodayRecords = async () => {
+  //   setLoadingRecords(true);
+  //   try {
+  //     const month = now.getMonth() + 1;
+  //     const year = now.getFullYear();
+  //     const res = await api.get('/attendance/my', { params: { month, year } });
+  //     const data = res.data || [];
+  //     const todayStr = now.toISOString().split('T')[0];
+  //     setRecords(data.filter(r => r.date?.startsWith(todayStr)));
+  //   } catch {
+  //     setRecords([]);
+  //   } finally {
+  //     setLoadingRecords(false);
+  //   }
+  // };
+
+
+const fetchTodayRecords = useCallback(async () => {
+  setLoadingRecords(true);
+  try {
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+
+    const res = await api.get('/attendance/my', {
+      params: { month, year }
+    });
+
+    const data = res.data || [];
+    const todayStr = now.toISOString().split('T')[0];
+
+    setRecords(data.filter(r => r.date?.startsWith(todayStr)));
+  } catch (err) {
+    console.log(err);
+    setRecords([]);
+  } finally {
+    setLoadingRecords(false);
+  }
+}, [now]); // ✅ important
+
+
+ useEffect(() => {
+    fetchTodayRecords();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    setCiTime(`${h}:${m}`);
+    setCoTime(`${h}:${m}`);
+  }, [fetchTodayRecords, now]);
 
   const validateCheckIn = () => {
     const errs = {};

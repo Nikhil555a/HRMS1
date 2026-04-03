@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import api from '../../utils/api';
 
 // NOTE: Expects GET /api/holidays?year=YYYY from your backend
@@ -53,20 +53,37 @@ export default function EmployeeHolidays() {
   const [filterMonth, setFilterMonth] = useState('');
   const [view, setView]           = useState('list'); // 'list' | 'calendar'
 
-  useEffect(() => { fetchHolidays(); }, [year]);
+  // useEffect(() => { fetchHolidays(); }, [year]);
 
-  const fetchHolidays = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/holidays', { params: { year } });
-      setHolidays(res.data || []);
-    } catch {
-      setHolidays(DEMO_HOLIDAYS_2026);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchHolidays = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await api.get('/holidays', { params: { year } });
+  //     setHolidays(res.data || []);
+  //   } catch {
+  //     setHolidays(DEMO_HOLIDAYS_2026);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
+    const fetchHolidays = useCallback(async () => {
+  setLoading(true);
+  try {
+    const res = await api.get('/holidays', { params: { year } });
+    setHolidays(res.data || []);
+  } catch {
+    setHolidays(DEMO_HOLIDAYS_2026);
+  } finally {
+    setLoading(false);
+  }
+}, [year]); // 👈 dependency
+
+useEffect(() => {
+  fetchHolidays();
+}, [fetchHolidays]);
+
+  
   const today = new Date();
 
   const filtered = holidays
@@ -162,7 +179,7 @@ export default function EmployeeHolidays() {
 
           {/* Type legend strip */}
           <div style={{
-            display: 'flex', gap: '0', borderTop: '1px solid rgba(255,255,255,0.08)',
+            display: 'flex',  borderTop: '1px solid rgba(255,255,255,0.08)',
             padding: '10px 24px', flexWrap: 'wrap', gap: '16px',
           }}>
             {Object.entries(HOLIDAY_TYPES).map(([type, info]) => {

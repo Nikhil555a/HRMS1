@@ -66,12 +66,20 @@ export default function CandidateDetail() {
   //   } catch (err) { toast.error('Error'); }
   // };
 
-  const fetchCand = useCallback(() => {
+//   const fetchCand = useCallback(() => {
+//   api.get(`/hiring/candidates/${id}`)
+//     .then(r => setCand(r.data))
+//     .catch(() => navigate('/hiring/candidates'))
+//     .finally(() => setLoading(false));
+// }, [id]);
+const fetchCand = useCallback(() => {
+  setLoading(true);
   api.get(`/hiring/candidates/${id}`)
     .then(r => setCand(r.data))
     .catch(() => navigate('/hiring/candidates'))
     .finally(() => setLoading(false));
-}, [id]);
+}, [id, navigate]); // 👈 add navigate
+
 
 useEffect(() => { fetchCand(); }, [fetchCand]);
 

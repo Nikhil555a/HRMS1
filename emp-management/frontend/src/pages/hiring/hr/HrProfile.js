@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../../context/AuthContext';
+// import { useAuth } from '../../../context/AuthContext';
 import api from '../../../utils/api';
 
 const PERM_LABELS = {
@@ -43,7 +43,7 @@ const AV_COLORS = ['#6366f1', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef44
 const avColor = (name = '') => AV_COLORS[name.charCodeAt(0) % AV_COLORS.length];
 
 export default function HRProfile() {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [profile, setProfile]       = useState(null);
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading]       = useState(true);

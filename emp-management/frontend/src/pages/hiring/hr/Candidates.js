@@ -56,7 +56,7 @@ export default function Candidates() {
   };
 
   const QUICK_STAGES = ['Applied', 'Screening', 'Shortlisted', 'Interview Scheduled', 'Selected', 'Offer Sent', 'Rejected'];
-  const stageCounts = QUICK_STAGES.map(s => ({ stage: s, count: candidates.filter(c => c.stage === s).length }));
+  // const stageCounts = QUICK_STAGES.map(s => ({ stage: s, count: candidates.filter(c => c.stage === s).length }));
 
   return (
     <div>

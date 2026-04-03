@@ -220,30 +220,49 @@ function CheckOutModal({ employees, onClose, onSuccess }) {
 
   const today = getTodayLocal();
 
-  useEffect(() => {
-    if (!selectedEmp) { setTodayRecord(null); return; }
-    setFetching(true);
+  // useEffect(() => {
+  //   if (!selectedEmp) { setTodayRecord(null); return; }
+  //   setFetching(true);
 
-    const month = new Date().getMonth() + 1;
-    const year  = new Date().getFullYear();
+  //   const month = new Date().getMonth() + 1;
+  //   const year  = new Date().getFullYear();
 
-    // FIX: Fetch attendance records for the selected employee for current month
-    api.get('/attendance', { params: { employee: selectedEmp, month, year } })
-      .then(res => {
-        const records = Array.isArray(res.data) ? res.data : (res.data?.records || []);
+  //   // FIX: Fetch attendance records for the selected employee for current month
+  //   api.get('/attendance', { params: { employee: selectedEmp, month, year } })
+  //     .then(res => {
+  //       const records = Array.isArray(res.data) ? res.data : (res.data?.records || []);
 
-        // FIX: Use robust local-date comparison instead of string startsWith
-        // Backend stores dates as midnight UTC; we compare by local date parts
-        const rec = records.find(r => {
-          if (!r.date) return false;
-          return isSameLocalDate(r.date, today);
-        });
+  //       // FIX: Use robust local-date comparison instead of string startsWith
+  //       // Backend stores dates as midnight UTC; we compare by local date parts
+  //       const rec = records.find(r => {
+  //         if (!r.date) return false;
+  //         return isSameLocalDate(r.date, today);
+  //       });
 
-        setTodayRecord(rec || null);
-      })
-      .catch(() => setTodayRecord(null))
-      .finally(() => setFetching(false));
-  }, [selectedEmp]);
+  //       setTodayRecord(rec || null);
+  //     })
+  //     .catch(() => setTodayRecord(null))
+  //     .finally(() => setFetching(false));
+  // }, [selectedEmp]);
+ useEffect(() => {
+  const today = getTodayLocal(); // 👈 move inside useEffect
+  if (!selectedEmp) { setTodayRecord(null); return; }
+  setFetching(true);
+
+  const month = today.getMonth() + 1;
+  const year  = today.getFullYear();
+
+  api.get('/attendance', { params: { employee: selectedEmp, month, year } })
+    .then(res => {
+      const records = Array.isArray(res.data) ? res.data : (res.data?.records || []);
+      const rec = records.find(r => r.date && isSameLocalDate(r.date, today));
+      setTodayRecord(rec || null);
+    })
+    .catch(() => setTodayRecord(null))
+    .finally(() => setFetching(false));
+}, [selectedEmp]); // ✅ warning gone
+
+
 
   const handleProceed = async (e) => {
     e.preventDefault();

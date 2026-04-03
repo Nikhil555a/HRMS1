@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect ,useCallback} from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
@@ -13,11 +13,26 @@ export default function EmployeeDetail() {
   const [showEdit, setShowEdit] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
 
-  const fetchEmp = () => {
-    api.get(`/employees/${id}`).then(r => setEmp(r.data)).catch(() => navigate('/employees')).finally(() => setLoading(false));
-  };
+  // const fetchEmp = () => {
+  //   api.get(`/employees/${id}`).then(r => setEmp(r.data)).catch(() => navigate('/employees')).finally(() => setLoading(false));
+  // };
 
-  useEffect(() => { fetchEmp(); api.get('/departments').then(r => setDepartments(r.data)); }, [id]);
+  // useEffect(() => { fetchEmp(); api.get('/departments').then(r => setDepartments(r.data)); }, [id]);
+
+
+const fetchEmp = useCallback(() => {
+  setLoading(true);
+  api.get(`/employees/${id}`)
+     .then(r => setEmp(r.data))
+     .catch(() => navigate('/employees'))
+     .finally(() => setLoading(false));
+}, [id, navigate]); // 👈 id + navigate dependency
+
+useEffect(() => {
+  fetchEmp();
+  api.get('/departments').then(r => setDepartments(r.data));
+}, [fetchEmp]);
+
 
   if (loading) return <div className="loading"><div className="spinner" /></div>;
   if (!emp) return null;

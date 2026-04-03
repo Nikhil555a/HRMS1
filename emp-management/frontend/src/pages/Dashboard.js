@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import api from '../utils/api';
 
-const COLORS = ['#6366f1', '#22d3ee', '#10b981', '#f59e0b', '#ef4444'];
+// const COLORS = ['#6366f1', '#22d3ee', '#10b981', '#f59e0b', '#ef4444'];
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
