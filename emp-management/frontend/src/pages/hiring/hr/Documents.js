@@ -10,7 +10,7 @@ export default function Documents() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const stages = ['Offer Accepted', 'Joined', 'Offer Sent'];
+    // const stages = ['Offer Accepted', 'Joined', 'Offer Sent'];
     api.get('/hiring/candidates', { params: { limit: 100 } })
       .then(r => setCandidates(r.data.candidates || [])).catch(console.error).finally(() => setLoading(false));
   }, []);
