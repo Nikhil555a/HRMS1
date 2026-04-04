@@ -10,7 +10,7 @@ const app = express();
 const httpServer = http.createServer(app); // ✅ IMPORTANT
 
 // ── Middleware ──
-app.use(cors({ origin: process.env.CLIENT_URL || '*', credentials: true }));
+app.use(cors({ origin: "https://hrms1-13.onrender.com" || '*', credentials: true }));
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
