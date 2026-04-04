@@ -82,8 +82,3 @@ httpServer.listen(PORT, () => {
   console.log(`   Hiring API   : http://localhost:${PORT}/api/hiring`);
   console.log(`   Socket       : ws://localhost:${PORT}`);
 });
-
-
-
-
-
