@@ -194,7 +194,7 @@ const handleSubmit = async (e) => {
             DEMO CREDENTIALS
           </div>
           {[
-            { label: 'Admin', email: 'admin@company.com', pwd: 'admin123', color: '#6366f1' },
+            // { label: 'Admin', email: 'admin@company.com', pwd: 'admin123', color: '#6366f1' },
             // { label: 'HR', email: 'hr@company.com', pwd: 'hr123', color: '#10b981' },
             // { label: 'Employee', email: 'emp@company.com', pwd: 'emp123', color: '#f59e0b' },
           ].map(c => (
