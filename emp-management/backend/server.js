@@ -2,7 +2,7 @@
 const express = require('express');
 const http = require('http'); // ✅ Socket ke liye
 const mongoose = require('mongoose');
-const cors = require('cors');
+const cors = require('cors');    
 const path = require('path');
 require('dotenv').config();
 
@@ -10,10 +10,30 @@ const app = express();
 const httpServer = http.createServer(app); // ✅ IMPORTANT
 
 // ── Middleware ──
-app.use(cors({ origin: "https://hrms1-13.onrender.com" || '*', credentials: true }));
+app.use(cors({ origin:process.env.CLIENT_URL , credentials: true }));
+// const allowedOrigins = [
+//   "https://hrms1-13.onrender.com", // deployed frontend
+//   "http://localhost:3000"           // local frontend
+// ];
+
+// app.use(cors({
+//   origin: function(origin, callback){
+//     // allow requests with no origin like mobile apps or curl
+//     if(!origin) return callback(null, true);
+//     if(allowedOrigins.indexOf(origin) === -1){
+//       const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+//       return callback(new Error(msg), false);
+//     }
+//     return callback(null, true);
+//   },
+//   credentials: true
+// }));
+
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 
 // ── Employee Management Routes ──

@@ -127,7 +127,7 @@ router.get('/stats', async (req, res) => {
 router.get('/hrs', async (req, res) => {
   try {
     const hrs = await User.find({ role: 'hr' })
-      .select('-password')
+      // .select('-password')
       .sort({ createdAt: -1 });
 
     const hrsWithStats = await Promise.all(

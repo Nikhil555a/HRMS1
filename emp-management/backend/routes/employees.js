@@ -22,7 +22,7 @@ router.get('/', auth, async (req, res) => {
     }
     const total = await Employee.countDocuments(query);
     const employees = await Employee.find(query)
-      .select('-password') // Never send password
+      // .select('-password') // Never send password
       .populate('department', 'name code')
       .skip((page - 1) * limit)
       .limit(Number(limit))
@@ -37,7 +37,7 @@ router.get('/', auth, async (req, res) => {
 router.get('/:id', auth, async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id)
-      .select('-password')
+      // .select('-password')
       .populate('department', 'name code');
     if (!employee) return res.status(404).json({ message: 'Employee not found' });
     res.json(employee);
@@ -169,7 +169,9 @@ router.put('/:id', auth, upload.fields([
     const employee = await Employee.findByIdAndUpdate(
       req.params.id, data,
       { new: true, runValidators: true }
-    ).select('-password').populate('department', 'name code');
+    )
+    .select('-password')
+    .populate('department', 'name code');
 
     if (!employee) return res.status(404).json({ message: 'Employee not found' });
     res.json(employee);
@@ -184,7 +186,8 @@ router.patch('/:id/status', auth, async (req, res) => {
     const { status, closingDate } = req.body;
     const update = { status };
     if (closingDate) update.closingDate = closingDate;
-    const employee = await Employee.findByIdAndUpdate(req.params.id, update, { new: true }).select('-password');
+    const employee = await Employee.findByIdAndUpdate(req.params.id, update, { new: true })
+    .select('-password');
     if (!employee) return res.status(404).json({ message: 'Employee not found' });
     res.json(employee);
   } catch (err) {

@@ -14,7 +14,12 @@ const interviewSchema = new mongoose.Schema({
   feedback: String,
   strengths: String,
   weaknesses: String,
-  recommendation: { type: String, enum: ['Strongly Recommend', 'Recommend', 'Neutral', 'Not Recommend', 'Strong Reject'] },
+  // recommendation: { type: String, enum: ['Strongly Recommend', 'Recommend', 'Neutral', 'Not Recommend', 'Strong Reject'] },
+  recommendation: { 
+  type: String, 
+  enum: ['', 'Strongly Recommend', 'Recommend', 'Neutral', 'Not Recommend', 'Strong Reject'],
+  default: ''
+},
   status: { type: String, enum: ['Scheduled', 'Completed', 'Cancelled', 'No Show'], default: 'Scheduled' },
   scheduledAt: Date,
   meetingLink: String,
