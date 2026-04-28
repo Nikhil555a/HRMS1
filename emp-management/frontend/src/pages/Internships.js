@@ -1,20 +1,90 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import api from '../utils/api';
 
 const STATUS_COLORS = { Active: 'success', Completed: 'info', Terminated: 'danger', Extended: 'warning' };
 
+/* ── Confirm Modal ── */
+function ConfirmModal({ open, title, message, onConfirm, onCancel, danger = true }) {
+  if (!open) return null;
+  return (
+    <div
+      className="modal-overlay"
+      onClick={e => e.target === e.currentTarget && onCancel()}
+      style={{ zIndex: 1200 }}
+    >
+      <div className="modal" style={{ maxWidth: '400px' }}>
+        <div className="modal-header">
+          <span className="modal-title">{title}</span>
+          <button className="modal-close" onClick={onCancel}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div className="modal-body">
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: '50%', flexShrink: 0,
+              background: danger ? '#ef444415' : '#f59e0b15',
+              border: `0.5px solid ${danger ? '#ef444430' : '#f59e0b30'}`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {danger ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6"/>
+                  <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              )}
+            </div>
+            <p style={{ fontSize: '14px', lineHeight: 1.65, margin: 0, paddingTop: '4px' }}>
+              {message}
+            </p>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+          <button
+            className="btn"
+            onClick={onConfirm}
+            style={{ background: danger ? '#ef4444' : '#f59e0b', color: 'white', border: 'none' }}
+          >
+            {danger ? 'Yes, Delete' : 'Yes, Proceed'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Internships() {
   const [internships, setInternships] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [editIntern, setEditIntern] = useState(null);
-  const [search, setSearch] = useState('');
+  const [employees, setEmployees]     = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [showModal, setShowModal]     = useState(false);
+  const [editIntern, setEditIntern]   = useState(null);
+  const [search, setSearch]           = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [filterDept, setFilterDept] = useState('');
-  const [skillInput, setSkillInput] = useState('');
+  const [filterDept, setFilterDept]   = useState('');
+  const [skillInput, setSkillInput]   = useState('');
+
+  /* ── Confirm modal state ── */
+  const [confirm, setConfirm] = useState({
+    open: false, title: '', message: '', onConfirm: null, danger: true,
+  });
+  const openConfirm = (title, message, onConfirm, danger = true) =>
+    setConfirm({ open: true, title, message, onConfirm, danger });
+  const closeConfirm = () => setConfirm(c => ({ ...c, open: false }));
 
   const initForm = {
     internId: '', firstName: '', lastName: '', email: '', phone: '',
@@ -28,11 +98,12 @@ export default function Internships() {
     setLoading(true);
     const params = {};
     if (filterStatus) params.status = filterStatus;
-    if (filterDept) params.department = filterDept;
-    if (search) params.search = search;
+    if (filterDept)   params.department = filterDept;
+    if (search)       params.search = search;
     api.get('/internships', { params })
       .then(r => setInternships(r.data))
-      .catch(console.error).finally(() => setLoading(false));
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, [filterStatus, filterDept, search]);
 
   useEffect(() => { fetchInternships(); }, [fetchInternships]);
@@ -42,10 +113,7 @@ export default function Internships() {
   }, []);
 
   const openAdd = () => {
-    setEditIntern(null);
-    setForm(initForm);
-    setSkillInput('');
-    setShowModal(true);
+    setEditIntern(null); setForm(initForm); setSkillInput(''); setShowModal(true);
   };
   const openEdit = (intern) => {
     setEditIntern(intern);
@@ -96,21 +164,47 @@ export default function Internships() {
     } catch { toast.error('Error'); }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Delete this internship record?')) return;
-    try { await api.delete(`/internships/${id}`); toast.success('Deleted'); fetchInternships(); }
-    catch { toast.error('Error'); }
+  /* ── Delete with custom confirm popup ── */
+  const handleDelete = (intern) => {
+    openConfirm(
+      'Delete Internship?',
+      <span>
+        You are about to permanently delete the record of{' '}
+        <strong>{intern.firstName} {intern.lastName}</strong> ({intern.internId}).
+        This action cannot be undone.
+      </span>,
+      async () => {
+        closeConfirm();
+        try {
+          await api.delete(`/internships/${intern._id}`);
+          toast.success('Deleted');
+          fetchInternships();
+        } catch { toast.error('Error'); }
+      },
+    );
   };
 
   return (
     <div>
+      {/* ── Confirm Modal ── */}
+      <ConfirmModal
+        open={confirm.open}
+        title={confirm.title}
+        message={confirm.message}
+        danger={confirm.danger}
+        onConfirm={confirm.onConfirm}
+        onCancel={closeConfirm}
+      />
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: 800 }}>Internships</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '4px' }}>{internships.length} internship records</p>
         </div>
         <button className="btn btn-primary" onClick={openAdd}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
           Add Internship
         </button>
       </div>
@@ -128,7 +222,9 @@ export default function Internships() {
 
       <div className="filters-bar">
         <div className="search-input">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
           <input placeholder="Search intern name, ID..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <select value={filterDept} onChange={e => setFilterDept(e.target.value)}>
@@ -139,7 +235,9 @@ export default function Internships() {
           <option value="">All Status</option>
           {['Active', 'Completed', 'Terminated', 'Extended'].map(s => <option key={s}>{s}</option>)}
         </select>
-        {(search || filterStatus || filterDept) && <button className="btn btn-secondary btn-sm" onClick={() => { setSearch(''); setFilterStatus(''); setFilterDept(''); }}>Clear</button>}
+        {(search || filterStatus || filterDept) && (
+          <button className="btn btn-secondary btn-sm" onClick={() => { setSearch(''); setFilterStatus(''); setFilterDept(''); }}>Clear</button>
+        )}
       </div>
 
       <div className="card">
@@ -147,14 +245,19 @@ export default function Internships() {
           <div className="table-wrap">
             <table>
               <thead>
-                <tr><th>Intern</th><th>ID</th><th>Department</th><th>Mentor</th><th>Period</th><th>Stipend</th><th>Performance</th><th>Status</th><th>Actions</th></tr>
+                <tr>
+                  <th>Intern</th><th>ID</th><th>Department</th><th>Mentor</th>
+                  <th>Period</th><th>Stipend</th><th>Performance</th><th>Status</th><th>Actions</th>
+                </tr>
               </thead>
               <tbody>
                 {internships.map(intern => (
                   <tr key={intern._id}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div className="emp-avatar" style={{ width: 32, height: 32, fontSize: '11px', background: 'var(--accent)', color: '#0f172a' }}>{intern.firstName?.[0]}{intern.lastName?.[0]}</div>
+                        <div className="emp-avatar" style={{ width: 32, height: 32, fontSize: '11px', background: 'var(--accent)', color: '#0f172a' }}>
+                          {intern.firstName?.[0]}{intern.lastName?.[0]}
+                        </div>
                         <div>
                           <div style={{ fontWeight: 600, fontSize: '13px' }}>{intern.firstName} {intern.lastName}</div>
                           <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{intern.college || intern.email}</div>
@@ -169,18 +272,27 @@ export default function Internships() {
                       <br />→ {intern.endDate ? new Date(intern.endDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                     </td>
                     <td style={{ fontSize: '13px' }}>{intern.stipend > 0 ? `₹${Number(intern.stipend).toLocaleString()}` : '—'}</td>
-                    <td>{intern.performance ? <span className={`badge badge-${intern.performance === 'Excellent' ? 'success' : intern.performance === 'Good' ? 'info' : intern.performance === 'Average' ? 'warning' : 'danger'}`}>{intern.performance}</span> : '—'}</td>
                     <td>
-                      <select value={intern.status} onChange={e => handleStatusChange(intern._id, e.target.value)}
+                      {intern.performance ? (
+                        <span className={`badge badge-${intern.performance === 'Excellent' ? 'success' : intern.performance === 'Good' ? 'info' : intern.performance === 'Average' ? 'warning' : 'danger'}`}>
+                          {intern.performance}
+                        </span>
+                      ) : '—'}
+                    </td>
+                    <td>
+                      <select
+                        value={intern.status}
+                        onChange={e => handleStatusChange(intern._id, e.target.value)}
                         className={`badge badge-${STATUS_COLORS[intern.status]}`}
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}
+                      >
                         {['Active', 'Completed', 'Terminated', 'Extended'].map(s => <option key={s}>{s}</option>)}
                       </select>
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '6px' }}>
                         <button className="btn btn-secondary btn-sm" onClick={() => openEdit(intern)}>Edit</button>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(intern._id)}>Del</button>
+                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(intern)}>Del</button>
                       </div>
                     </td>
                   </tr>
@@ -192,13 +304,16 @@ export default function Internships() {
         )}
       </div>
 
+      {/* ── Add / Edit Modal ── */}
       {showModal && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
           <div className="modal modal-lg">
             <div className="modal-header">
               <span className="modal-title">{editIntern ? 'Edit Internship' : 'Add Internship'}</span>
               <button className="modal-close" onClick={() => setShowModal(false)}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
               </button>
             </div>
             <form onSubmit={handleSubmit}>
@@ -219,6 +334,7 @@ export default function Internships() {
                   <div className="form-group"><label>College</label><input value={form.college} onChange={e => set('college', e.target.value)} placeholder="IIT / NIT / Other" /></div>
                   <div className="form-group"><label>Degree</label><input value={form.degree} onChange={e => set('degree', e.target.value)} placeholder="B.Tech / MCA" /></div>
                 </div>
+
                 <div className="section-divider"><span>Internship Details</span></div>
                 <div className="form-grid">
                   <div className="form-group"><label>Mentor</label>
@@ -249,22 +365,29 @@ export default function Internships() {
                     </label>
                   </div>
                 </div>
+
                 <div className="section-divider"><span>Skills</span></div>
                 <div className="form-group" style={{ marginBottom: '12px' }}>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <input value={skillInput} onChange={e => setSkillInput(e.target.value)}
+                    <input
+                      value={skillInput}
+                      onChange={e => setSkillInput(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                      placeholder="Add skill and press Enter" style={{ flex: 1 }} />
+                      placeholder="Add skill and press Enter"
+                      style={{ flex: 1 }}
+                    />
                     <button type="button" className="btn btn-secondary" onClick={addSkill}>Add</button>
                   </div>
                   <div className="skills-wrap" style={{ marginTop: '10px' }}>
                     {form.skills.map(s => (
                       <span key={s} className="skill-tag" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {s}<button type="button" onClick={() => set('skills', form.skills.filter(x => x !== s))} style={{ background: 'none', border: 'none', color: 'var(--primary-light)', cursor: 'pointer' }}>×</button>
+                        {s}
+                        <button type="button" onClick={() => set('skills', form.skills.filter(x => x !== s))} style={{ background: 'none', border: 'none', color: 'var(--primary-light)', cursor: 'pointer' }}>×</button>
                       </span>
                     ))}
                   </div>
                 </div>
+
                 <div className="form-group full">
                   <label>Notes</label>
                   <textarea value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Additional notes..." />

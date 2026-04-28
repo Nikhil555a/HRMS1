@@ -25,7 +25,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://hrms1-3.onrender.com/api'
+  baseURL: '/api' ,
+   timeout: 120000, // ✅ 2 minute — Cloudinary upload ke liye
+  // baseURL: 'https://hrms1-3.onrender.com/api'
 });
 
 api.interceptors.request.use(cfg => {

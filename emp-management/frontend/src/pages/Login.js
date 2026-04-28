@@ -1,4 +1,5 @@
 
+<<<<<<< HEAD
 // import React, { useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
 // import { toast } from 'react-toastify';
@@ -224,6 +225,8 @@
 
 
 
+=======
+>>>>>>> 6da1c31 (Updated frontend HRMS features)
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
